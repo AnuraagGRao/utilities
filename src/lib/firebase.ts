@@ -8,7 +8,6 @@ import {
   type Auth, 
   type User 
 } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
 import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -25,14 +24,12 @@ export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseCon
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
-let db: Firestore | null = null;
 let analytics: Analytics | null = null;
 
 if (typeof window !== "undefined" && isFirebaseConfigured) {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
-    db = getFirestore(app);
 
     // Initialize Analytics if supported in the browser environment
     isSupported().then((supported) => {
@@ -42,15 +39,6 @@ if (typeof window !== "undefined" && isFirebaseConfigured) {
     });
   } catch (error) {
     console.warn("Firebase client initialization error:", error);
-  }
-} else if (isFirebaseConfigured) {
-  // Server-side initialization
-  try {
-    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-  } catch (error) {
-    console.warn("Firebase server initialization error:", error);
   }
 }
 
@@ -68,4 +56,4 @@ export const logoutUser = async () => {
   return signOut(auth);
 };
 
-export { app, auth, db, analytics, onAuthStateChanged, type User };
+export { app, auth, analytics, onAuthStateChanged, type User };
