@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/context/AuthContext";
@@ -37,6 +38,11 @@ export default function RootLayout({
           <main className="flex-1 flex flex-col">{children}</main>
           <Footer />
         </AuthProvider>
+        <Script
+          src="https://analytics-hub.anuraag7rao.workers.dev/tracker.js"
+          data-project="utils"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
