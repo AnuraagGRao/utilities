@@ -9,20 +9,32 @@ import {
 } from "lucide-react";
 import { TOOLS, TOOL_CATEGORIES } from "@/lib/tools";
 import { ToolCategory } from "@/types";
+import { useTopTools } from "@/hooks/useTopTools";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchFilter, setSearchFilter] = useState("");
+  const [sortByUsage, setSortByUsage] = useState(true);
+  const topTools = useTopTools(0); // get all tools with their live visit counts
 
-  const filteredTools = TOOLS.filter((tool) => {
-    const matchesCat = selectedCategory === "All" || tool.category === selectedCategory;
-    const matchesSearch =
-      !searchFilter ||
-      tool.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      tool.description.toLowerCase().includes(searchFilter.toLowerCase()) ||
-      tool.tags.some((t) => t.toLowerCase().includes(searchFilter.toLowerCase()));
-    return matchesCat && matchesSearch;
-  });
+  const usageMap = new Map(topTools.map((t) => [t.id, t.visits]));
+
+  const filteredTools = [...TOOLS]
+    .filter((tool) => {
+      const matchesCat = selectedCategory === "All" || tool.category === selectedCategory;
+      const matchesSearch =
+        !searchFilter ||
+        tool.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        tool.description.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        tool.tags.some((t) => t.toLowerCase().includes(searchFilter.toLowerCase()));
+      return matchesCat && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortByUsage) {
+        return (usageMap.get(b.id) || 0) - (usageMap.get(a.id) || 0);
+      }
+      return a.name.localeCompare(b.name);
+    });
 
   const getToolIcon = (name: string) => {
     switch (name) {
@@ -86,84 +98,107 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Category Filter Pills */}
-        <div className="mt-8 flex items-center justify-center gap-1.5 flex-wrap">
-          {TOOL_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  isSelected
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent"
-                }`}
-              >
-                {cat}
-              </button>
-            );
-          })}
+        {/* Category & Sorting Controls */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
+            {TOOL_CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                    isSelected
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/10"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent"
+                  }`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setSortByUsage(!sortByUsage)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+              sortByUsage
+                ? "bg-amber-500/10 text-amber-300 border-amber-500/30"
+                : "bg-slate-900/80 text-slate-400 border-slate-800"
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5 text-amber-400" />
+            <span>{sortByUsage ? "Sorted by Usage" : "Sort Alphabetical"}</span>
+          </button>
         </div>
       </section>
 
       {/* Bento Grid Section */}
       <section className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTools.map((tool) => (
-            <Link
-              key={tool.id}
-              href={tool.path}
-              className="group relative flex flex-col justify-between p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/90 transition-all duration-200 glass-panel glass-panel-hover"
-            >
-              <div>
-                {/* Header Icon & Badges */}
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 group-hover:scale-110 transition-transform">
-                    {getToolIcon(tool.iconName)}
-                  </div>
+          {filteredTools.map((tool, index) => {
+            const visits = usageMap.get(tool.id) || 0;
+            const isTopOne = index === 0 && sortByUsage;
 
-                  <div className="flex items-center gap-1.5">
-                    {tool.badge && (
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                        {tool.badge}
+            return (
+              <Link
+                key={tool.id}
+                href={tool.path}
+                className="group relative flex flex-col justify-between p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/90 transition-all duration-200 glass-panel glass-panel-hover"
+              >
+                <div>
+                  {/* Header Icon & Badges */}
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 group-hover:scale-110 transition-transform">
+                      {getToolIcon(tool.iconName)}
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {isTopOne ? (
+                        <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                          <Flame className="w-2.5 h-2.5" />
+                          #1 MOST USED
+                        </span>
+                      ) : tool.badge ? (
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                          {tool.badge}
+                        </span>
+                      ) : null}
+
+                      <span className="text-xs text-slate-500 font-medium">
+                        {tool.category}
                       </span>
-                    )}
-                    <span className="text-xs text-slate-500 font-medium">
-                      {tool.category}
+                    </div>
+                  </div>
+
+                  {/* Tool Name & Description */}
+                  <h3 className="text-lg font-bold text-slate-100 group-hover:text-cyan-300 transition-colors flex items-center gap-2">
+                    <span>{tool.name}</span>
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
+                    {tool.description}
+                  </p>
+                </div>
+
+                {/* Card Footer: Tags, Visits & Action */}
+                <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800/90 text-slate-400 border border-slate-700/60">
+                      {visits} visits
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
+                      #{tool.tags[0]}
                     </span>
                   </div>
-                </div>
 
-                {/* Tool Name & Description */}
-                <h3 className="text-lg font-bold text-slate-100 group-hover:text-cyan-300 transition-colors flex items-center gap-2">
-                  <span>{tool.name}</span>
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
-                  {tool.description}
-                </p>
-              </div>
-
-              {/* Card Footer: Tags & Action */}
-              <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {tool.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800/70 text-slate-400"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                  <div className="flex items-center gap-1 text-xs font-semibold text-cyan-400 group-hover:translate-x-1 transition-transform">
+                    <span>Launch</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
                 </div>
-
-                <div className="flex items-center gap-1 text-xs font-semibold text-cyan-400 group-hover:translate-x-1 transition-transform">
-                  <span>Launch</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
 
