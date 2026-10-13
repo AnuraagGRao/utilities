@@ -39,7 +39,7 @@ export default function RootLayout({
           <Footer />
         </AuthProvider>
         <Script
-          src="https://analytics-hub.anuraag7rao.workers.dev/tracker.js"
+          src="https://analytics.anuraaggrao.com/tracker.js"
           data-project="utils"
           strategy="afterInteractive"
         />
