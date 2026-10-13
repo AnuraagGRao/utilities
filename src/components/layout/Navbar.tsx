@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Search, Sparkles, Terminal, ExternalLink, Globe } from "lucide-react";
+import { Command, Search, Sparkles, Terminal, ExternalLink, Globe, LogIn, LogOut, User as UserIcon } from "lucide-react";
 import { CommandPalette } from "../CommandPalette";
+import { useAuth } from "@/context/AuthContext";
 
 export function Navbar() {
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const pathname = usePathname();
+  const { user, loading, login, logout } = useAuth();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,7 +77,7 @@ export function Navbar() {
             </nav>
           </div>
 
-          {/* Quick Search & Actions */}
+          {/* Quick Search, Auth & Actions */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsPaletteOpen(true)}
@@ -87,6 +89,45 @@ export function Navbar() {
                 <Command className="w-2.5 h-2.5" /> K
               </kbd>
             </button>
+
+            {/* Firebase Auth User Status */}
+            {!loading && (
+              user ? (
+                <div className="flex items-center gap-2 pl-1">
+                  <div className="flex items-center gap-2 p-1 pl-2 pr-3 rounded-xl bg-slate-900 border border-slate-800">
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt={user.displayName || "User"}
+                        className="w-5 h-5 rounded-full ring-1 ring-cyan-500/40"
+                      />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-[10px] font-bold">
+                        {user.displayName?.[0] || "U"}
+                      </div>
+                    )}
+                    <span className="text-xs text-slate-200 font-medium hidden sm:inline max-w-[100px] truncate">
+                      {user.displayName?.split(" ")[0] || "User"}
+                    </span>
+                    <button
+                      onClick={logout}
+                      title="Sign Out"
+                      className="p-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                    >
+                      <LogOut className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={login}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-violet-500/20 hover:from-cyan-500/30 hover:to-violet-500/30 border border-cyan-500/30 text-xs font-medium text-cyan-300 hover:text-white transition-all shadow-sm"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Sign In</span>
+                </button>
+              )
+            )}
 
             <a
               href="https://anuraaggrao.com"
