@@ -5,7 +5,7 @@ import Link from "next/link";
 import { 
   Braces, Ruler, Globe, Tag, KeyRound, GitCompare, 
   Search, ArrowRight, ShieldCheck, Zap, Sparkles, Terminal, 
-  Command, Flame
+  Command, Flame, Binary, Hash, Clock, History, Code2, Camera, Lock
 } from "lucide-react";
 import { TOOLS, TOOL_CATEGORIES } from "@/lib/tools";
 import { ToolCategory } from "@/types";
@@ -50,6 +50,18 @@ export default function HomePage() {
         return <KeyRound className="w-6 h-6 text-rose-400" />;
       case "GitCompare":
         return <GitCompare className="w-6 h-6 text-sky-400" />;
+      case "Binary":
+        return <Binary className="w-6 h-6 text-emerald-400" />;
+      case "Hash":
+        return <Hash className="w-6 h-6 text-teal-400" />;
+      case "Clock":
+        return <Clock className="w-6 h-6 text-amber-400" />;
+      case "History":
+        return <History className="w-6 h-6 text-indigo-400" />;
+      case "Code2":
+        return <Code2 className="w-6 h-6 text-sky-400" />;
+      case "Camera":
+        return <Camera className="w-6 h-6 text-pink-400" />;
       default:
         return <Sparkles className="w-6 h-6 text-cyan-400" />;
     }
@@ -80,8 +92,16 @@ export default function HomePage() {
         </h1>
 
         <p className="mt-4 text-sm sm:text-base text-slate-400 max-w-2xl leading-relaxed">
-          Zero ads. Zero tracking. Instant client-side processing for JSON inspection, screen caliper measurement, passive domain intelligence, and live deal hunting.
+          Zero ads. Zero tracking. Instant client-side processing for regular expressions, cryptography, cron scheduling, JSON inspection, and developer micro-tasks.
         </p>
+
+        {/* 100% Client-Side Privacy Guarantee Badge */}
+        <div className="mt-5 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-xs text-emerald-300 shadow-sm backdrop-blur-md">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="font-medium">100% Client-Side Execution</span>
+          <span className="text-emerald-500/60 hidden xs:inline">·</span>
+          <span className="text-emerald-400/80 hidden xs:inline">Zero server payload logging · Web Crypto · Sandboxed</span>
+        </div>
 
         {/* Search Bar Input */}
         <div className="mt-8 w-full max-w-lg relative">

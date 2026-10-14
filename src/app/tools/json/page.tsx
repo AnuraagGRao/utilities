@@ -7,7 +7,7 @@ import {
   ArrowUpDown, Minimize2, CheckCircle2, FileCode, Clipboard
 } from "lucide-react";
 
-type ViewMode = "tree" | "formatted" | "minified" | "typescript";
+type ViewMode = "tree" | "formatted" | "minified" | "typescript" | "query";
 
 interface JsonStats {
   sizeBytes: number;
@@ -61,6 +61,7 @@ export default function JsonStudioPage() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [expandDepth, setExpandDepth] = useState<number>(3);
   const [errorInfo, setErrorInfo] = useState<{ message: string; line?: number; column?: number } | null>(null);
+  const [queryPath, setQueryPath] = useState<string>("$.data.user.email");
 
   // Parse JSON and compute statistics
   const { parsedJson, stats, parseError } = useMemo(() => {
@@ -443,6 +444,16 @@ export default function JsonStudioPage() {
               >
                 Minified
               </button>
+              <button
+                onClick={() => setViewMode("query")}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  viewMode === "query"
+                    ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                JSONPath Query
+              </button>
             </div>
 
             {viewMode === "tree" && (
@@ -524,6 +535,84 @@ export default function JsonStudioPage() {
                 <pre className="p-4 rounded-xl bg-slate-950 font-mono text-xs text-slate-300 break-all whitespace-pre-wrap overflow-x-auto leading-relaxed border border-slate-800/80">
                   {JSON.stringify(parsedJson)}
                 </pre>
+              </div>
+            ) : viewMode === "query" && parsedJson !== null ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono uppercase text-slate-400 font-semibold">
+                      JSONPath / Dot-Path Expression
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {["$.data.user", "$.data.metrics", "$.data.user.roles[0]"].map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setQueryPath(p)}
+                          className="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[10px] font-mono text-cyan-300 border border-slate-800"
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    value={queryPath}
+                    onChange={(e) => setQueryPath(e.target.value)}
+                    placeholder="e.g. $.data.user.email or data.metrics.deployedSubdomains[0]"
+                    className="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 font-mono text-xs text-cyan-200 focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono uppercase text-slate-400">
+                      Evaluated Result
+                    </span>
+                    <button
+                      onClick={() => {
+                        let clean = queryPath.trim();
+                        if (clean.startsWith("$.")) clean = clean.slice(2);
+                        else if (clean.startsWith("$")) clean = clean.slice(1);
+                        else if (clean.startsWith(".")) clean = clean.slice(1);
+                        const parts = clean.split(/\.|\[|\]/).filter(Boolean);
+                        let curr: any = parsedJson;
+                        for (const part of parts) {
+                          if (curr == null) break;
+                          curr = curr[part];
+                        }
+                        copyToClipboard(typeof curr === "object" ? JSON.stringify(curr, null, 2) : String(curr), "query-res");
+                      }}
+                      className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-xs flex items-center gap-1 hover:bg-slate-700"
+                    >
+                      {copiedKey === "query-res" ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      <span>Copy Result</span>
+                    </button>
+                  </div>
+
+                  <pre className="p-4 rounded-xl bg-slate-950 font-mono text-xs text-cyan-300 overflow-x-auto leading-relaxed border border-slate-800 select-all">
+                    {(() => {
+                      try {
+                        let clean = queryPath.trim();
+                        if (!clean || clean === "$" || clean === ".") return JSON.stringify(parsedJson, null, 2);
+                        if (clean.startsWith("$.")) clean = clean.slice(2);
+                        else if (clean.startsWith("$")) clean = clean.slice(1);
+                        else if (clean.startsWith(".")) clean = clean.slice(1);
+                        const parts = clean.split(/\.|\[|\]/).filter(Boolean);
+                        let curr: any = parsedJson;
+                        for (const part of parts) {
+                          if (curr === null || curr === undefined) {
+                            return `Property '${part}' not found in payload`;
+                          }
+                          curr = curr[part];
+                        }
+                        return typeof curr === "object" ? JSON.stringify(curr, null, 2) : String(curr);
+                      } catch (err: any) {
+                        return `Error: ${err.message}`;
+                      }
+                    })()}
+                  </pre>
+                </div>
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-500">

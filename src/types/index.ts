@@ -3,7 +3,8 @@ export type ToolCategory =
   | "Design & UX" 
   | "Web & Recon" 
   | "Shopping & Deals" 
-  | "Text & Data";
+  | "Text & Data"
+  | "Security & Crypto";
 
 export interface ToolItem {
   id: string;
