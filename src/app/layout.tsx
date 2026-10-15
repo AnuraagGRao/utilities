@@ -18,9 +18,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://utils.anuraaggrao.com"),
   title: "utils.anuraaggrao.com | High-Performance Developer & Recon Toolkit",
-  description: "A fast, privacy-focused collection of utilities: JSON Studio, Screen Ruler, Subdomain Scout, Deal Radar, and more.",
+  description: "A fast, zero-server privacy collection of developer utilities: JSON Studio, Screen Ruler, Subdomain Scout, Regex Playground, WebCrypto Studio, and more.",
   keywords: ["developer tools", "JSON viewer", "screen ruler", "subdomains", "deals", "utilities", "anuraaggrao"],
+  openGraph: {
+    title: "utils.anuraaggrao.com | High-Performance Developer Recon Suite",
+    description: "15 client-side developer tools. Zero server payload leaks, in-browser Web Crypto API, and 3D cyber matrix with resident guide Koji.",
+    url: "https://utils.anuraaggrao.com",
+    siteName: "Developer Utilities · Anuraag G Rao",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 675,
+        alt: "Developer Utilities by Anuraag G Rao",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "utils.anuraaggrao.com | Developer Recon Suite",
+    description: "15 client-side developer tools. Zero server payload leaks, in-browser Web Crypto API, and 3D cyber matrix with resident guide Koji.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function RootLayout({
